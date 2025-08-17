@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -14,7 +14,13 @@ interface Message {
   timestamp: Date;
 }
 
-const ChatInterface = () => {
+interface ChatInterfaceProps {
+  showProposal?: boolean;
+  onHideProposal?: () => void;
+  resetTrigger?: number;
+}
+
+const ChatInterface = ({ showProposal: externalShowProposal, onHideProposal, resetTrigger }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -30,8 +36,49 @@ const ChatInterface = () => {
   const [showProposal, setShowProposal] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const WEBHOOK_URL = "https://crystal-n8n.u93rhn.easypanel.host/webhook/677a67ff-ce62-4474-92fb-b9dc51f0ce8c";
+
+  // Auto scroll to bottom when new messages are added
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const handleReset = useCallback(() => {
+    setMessages([
+      {
+        id: "1",
+        text: "👋 ¡Hola! Bienvenido/a al asistente conversacional de Crystal S.A.S.\nEstoy aquí para escucharte y recibir tus propuestas o ideas innovadoras 💡.\nTu aporte es muy valioso para nosotros y puede ayudarnos a generar grandes cambios.\n\nAntes de continuar, por favor indícame tu número de cédula para poder registrar tu idea correctamente.",
+        isUser: false,
+        timestamp: new Date(),
+      },
+    ]);
+    setSessionId("");
+    setInputText("");
+    setTemplateContent("");
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Handle external show proposal trigger
+  useEffect(() => {
+    if (externalShowProposal) {
+      setShowProposal(true);
+    }
+  }, [externalShowProposal]);
+
+  // Handle external reset trigger
+  useEffect(() => {
+    if (resetTrigger && resetTrigger > 0) {
+      handleReset();
+    }
+  }, [resetTrigger, handleReset]);
 
   const handleSendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
@@ -152,19 +199,6 @@ const ChatInterface = () => {
     }
   };
 
-  const handleReset = () => {
-    setMessages([
-      {
-        id: "1",
-        text: "👋 ¡Hola! Bienvenido/a al asistente conversacional de Crystal S.A.S.\nEstoy aquí para escucharte y recibir tus propuestas o ideas innovadoras 💡.\nTu aporte es muy valioso para nosotros y puede ayudarnos a generar grandes cambios.\n\nAntes de continuar, por favor indícame tu número de cédula para poder registrar tu idea correctamente.",
-        isUser: false,
-        timestamp: new Date(),
-      },
-    ]);
-    setSessionId("");
-    setInputText("");
-    setTemplateContent("");
-  };
 
   // Mobile Proposal Overlay Component
   const ProposalOverlay = () => (
@@ -172,7 +206,10 @@ const ChatInterface = () => {
       <div className="flex justify-between items-center p-4 border-b border-border">
         <h3 className="font-semibold text-foreground">Propuesta Actual</h3>
         <Button
-          onClick={() => setShowProposal(false)}
+          onClick={() => {
+            setShowProposal(false);
+            if (onHideProposal) onHideProposal();
+          }}
           variant="ghost"
           size="sm"
           className="p-1"
@@ -195,35 +232,7 @@ const ChatInterface = () => {
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-chat-background relative">
-      {/* Header with Reset Button and Mobile Proposal Toggle */}
-      <div className="flex justify-between items-center p-4 border-b border-border">
-        {/* Mobile Proposal Toggle Button */}
-        {isMobile && (
-          <Button
-            onClick={() => setShowProposal(true)}
-            variant="default"
-            size="sm"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center space-x-2"
-          >
-            <FileText className="w-4 h-4" />
-            <span>Ver Propuesta</span>
-          </Button>
-        )}
-        
-        {!isMobile && <div></div>}
-        
-        <Button
-          onClick={handleReset}
-          variant="outline"
-          size="sm"
-          className="flex items-center space-x-2"
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span className="hidden sm:inline">Reiniciar Chat</span>
-          <span className="sm:hidden">Reset</span>
-        </Button>
-      </div>
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-chat-background relative mt-16">
       
       {/* Mobile: Full-screen chat OR Desktop: Resizable panels */}
       {isMobile ? (
@@ -231,7 +240,7 @@ const ChatInterface = () => {
           {/* Mobile Chat Interface */}
           <div className="flex flex-col flex-1">
             {/* Chat Messages */}
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
               <div className="space-y-4">
                 {messages.map((message) => (
                   <div
@@ -251,9 +260,9 @@ const ChatInterface = () => {
                         <User className="w-4 h-4" />
                       ) : (
                         <img 
-                          src="/lovable-uploads/abf804f8-0f27-4e98-b543-78b43f364eda.png" 
-                          alt="Crystal Bot" 
-                          className="w-5 h-5 rounded-full"
+                          src="/lovable-uploads/c610eb67-608b-4934-b110-bd55c863dcba.png" 
+                          alt="CRYS Bot" 
+                          className="w-5 h-5 rounded-full object-contain"
                         />
                       )}
                     </div>
@@ -274,6 +283,7 @@ const ChatInterface = () => {
                     </div>
                   </div>
                 ))}
+                <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
 
@@ -351,9 +361,9 @@ const ChatInterface = () => {
                           <User className="w-4 h-4" />
                         ) : (
                           <img 
-                            src="/lovable-uploads/abf804f8-0f27-4e98-b543-78b43f364eda.png" 
-                            alt="Crystal Bot" 
-                            className="w-5 h-5 rounded-full"
+                            src="/lovable-uploads/c610eb67-608b-4934-b110-bd55c863dcba.png" 
+                            alt="CRYS Bot" 
+                            className="w-5 h-5 rounded-full object-contain"
                           />
                         )}
                       </div>
@@ -374,6 +384,7 @@ const ChatInterface = () => {
                       </div>
                     </div>
                   ))}
+                  <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
 
