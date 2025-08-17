@@ -29,7 +29,7 @@ const Header = () => {
           >
             <Link to="/" className="flex items-center space-x-2">
               <MessageCircle className="w-4 h-4" />
-              <span>Chat</span>
+              <span className="hidden sm:inline">Chat</span>
             </Link>
           </Button>
           
@@ -40,7 +40,7 @@ const Header = () => {
           >
             <Link to="/dashboard" className="flex items-center space-x-2">
               <BarChart3 className="w-4 h-4" />
-              <span>Dashboard</span>
+              <span className="hidden sm:inline">Dashboard</span>
             </Link>
           </Button>
 
@@ -52,7 +52,7 @@ const Header = () => {
               className="flex items-center space-x-2"
             >
               <LogOut className="w-4 h-4" />
-              <span>Salir</span>
+              <span className="hidden sm:inline">Salir</span>
             </Button>
           )}
         </nav>

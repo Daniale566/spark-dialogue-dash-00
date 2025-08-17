@@ -157,27 +157,27 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard de Trazabilidad</h1>
-          <p className="text-muted-foreground">
+        <div className="mb-6 sm:mb-8 animate-fade-in">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Dashboard de Trazabilidad</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Monitorea y gestiona las conversaciones del chat con trazabilidad completa
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           {stats.map((stat, index) => (
             <Card key={stat.title} className="animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
                   {stat.title}
                 </CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
+                <stat.icon className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+              <CardContent className="p-3 sm:p-6 pt-0">
+                <div className="text-lg sm:text-2xl font-bold text-foreground">{stat.value}</div>
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-xs text-muted-foreground">
                     {stat.description}
@@ -196,34 +196,49 @@ const Dashboard = () => {
 
         {/* Conversaciones con Trazabilidad */}
         <Card className="animate-slide-up" style={{ animationDelay: '400ms' }}>
-          <CardHeader>
-            <CardTitle className="text-xl text-foreground">Gestión de Conversaciones</CardTitle>
-            <CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl text-foreground">Gestión de Conversaciones</CardTitle>
+            <CardDescription className="text-sm">
               Revisa, acepta o rechaza conversaciones con trazabilidad por ID
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0">
             <Tabs defaultValue="all" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="all">Todas ({conversations.length})</TabsTrigger>
-                <TabsTrigger value="pendiente">
-                  Pendientes ({filterConversations('pendiente').length})
-                </TabsTrigger>
-                <TabsTrigger value="aceptada">
-                  Aceptadas ({filterConversations('aceptada').length})
-                </TabsTrigger>
-                <TabsTrigger value="rechazada">
-                  Rechazadas ({filterConversations('rechazada').length})
-                </TabsTrigger>
-                <TabsTrigger value="activa">
-                  Activas ({filterConversations('activa').length})
-                </TabsTrigger>
-              </TabsList>
+              {/* Mobile: Scrollable tabs */}
+              <div className="overflow-x-auto">
+                <TabsList className="grid w-full grid-cols-5 min-w-[600px] sm:min-w-0">
+                  <TabsTrigger value="all" className="text-xs sm:text-sm px-2 sm:px-3">
+                    <span className="hidden sm:inline">Todas</span>
+                    <span className="sm:hidden">Todo</span>
+                    <span className="ml-1">({conversations.length})</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="pendiente" className="text-xs sm:text-sm px-2 sm:px-3">
+                    <span className="hidden sm:inline">Pendientes</span>
+                    <span className="sm:hidden">Pend.</span>
+                    <span className="ml-1">({filterConversations('pendiente').length})</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="aceptada" className="text-xs sm:text-sm px-2 sm:px-3">
+                    <span className="hidden sm:inline">Aceptadas</span>
+                    <span className="sm:hidden">Acep.</span>
+                    <span className="ml-1">({filterConversations('aceptada').length})</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="rechazada" className="text-xs sm:text-sm px-2 sm:px-3">
+                    <span className="hidden sm:inline">Rechazadas</span>
+                    <span className="sm:hidden">Rech.</span>
+                    <span className="ml-1">({filterConversations('rechazada').length})</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="activa" className="text-xs sm:text-sm px-2 sm:px-3">
+                    <span className="hidden sm:inline">Activas</span>
+                    <span className="sm:hidden">Act.</span>
+                    <span className="ml-1">({filterConversations('activa').length})</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
               {['all', 'pendiente', 'aceptada', 'rechazada', 'activa'].map(status => (
-                <TabsContent key={status} value={status} className="mt-6">
-                  <ScrollArea className="h-[600px]">
-                    <div className="grid gap-4">
+                <TabsContent key={status} value={status} className="mt-4 sm:mt-6">
+                  <ScrollArea className="h-[400px] sm:h-[600px]">
+                    <div className="grid gap-3 sm:gap-4">
                       {filterConversations(status === 'all' ? undefined : status).map((conversation) => (
                         <ConversationCard
                           key={conversation.id}

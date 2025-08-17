@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, User, RotateCcw } from "lucide-react";
+import { Send, Bot, User, RotateCcw, FileText, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Message {
   id: string;
@@ -26,7 +27,9 @@ const ChatInterface = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
   const [templateContent, setTemplateContent] = useState<string>("");
+  const [showProposal, setShowProposal] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const WEBHOOK_URL = "https://crystal-n8n.u93rhn.easypanel.host/webhook/677a67ff-ce62-4474-92fb-b9dc51f0ce8c";
 
@@ -163,10 +166,53 @@ const ChatInterface = () => {
     setTemplateContent("");
   };
 
+  // Mobile Proposal Overlay Component
+  const ProposalOverlay = () => (
+    <div className="fixed inset-0 bg-background z-50 flex flex-col">
+      <div className="flex justify-between items-center p-4 border-b border-border">
+        <h3 className="font-semibold text-foreground">Propuesta Actual</h3>
+        <Button
+          onClick={() => setShowProposal(false)}
+          variant="ghost"
+          size="sm"
+          className="p-1"
+        >
+          <X className="w-5 h-5" />
+        </Button>
+      </div>
+      <ScrollArea className="flex-1 p-4">
+        {templateContent ? (
+          <div className="text-sm text-foreground whitespace-pre-line">
+            {templateContent}
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground italic">
+            La propuesta aparecerá aquí conforme vayas completando la información...
+          </div>
+        )}
+      </ScrollArea>
+    </div>
+  );
+
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-chat-background">
-      {/* Header with Reset Button */}
-      <div className="flex justify-end p-4 border-b border-border">
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-chat-background relative">
+      {/* Header with Reset Button and Mobile Proposal Toggle */}
+      <div className="flex justify-between items-center p-4 border-b border-border">
+        {/* Mobile Proposal Toggle Button */}
+        {isMobile && (
+          <Button
+            onClick={() => setShowProposal(true)}
+            variant="default"
+            size="sm"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center space-x-2"
+          >
+            <FileText className="w-4 h-4" />
+            <span>Ver Propuesta</span>
+          </Button>
+        )}
+        
+        {!isMobile && <div></div>}
+        
         <Button
           onClick={handleReset}
           variant="outline"
@@ -174,40 +220,19 @@ const ChatInterface = () => {
           className="flex items-center space-x-2"
         >
           <RotateCcw className="w-4 h-4" />
-          <span>Reiniciar Chat</span>
+          <span className="hidden sm:inline">Reiniciar Chat</span>
+          <span className="sm:hidden">Reset</span>
         </Button>
       </div>
       
-      {/* Main Content Area with Resizable Panels */}
-      <ResizablePanelGroup direction="horizontal" className="flex-1">
-        {/* Template Panel - Left 30% */}
-        <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
-          <div className="h-full bg-background border-r border-border">
-            <div className="p-4 border-b border-border">
-              <h3 className="font-semibold text-foreground">Propuesta Actual</h3>
-            </div>
-            <ScrollArea className="h-[calc(100%-4rem)] p-4">
-              {templateContent ? (
-                <div className="text-sm text-foreground whitespace-pre-line">
-                  {templateContent}
-                </div>
-              ) : (
-                <div className="text-sm text-muted-foreground italic">
-                  La propuesta aparecerá aquí conforme vayas completando la información...
-                </div>
-              )}
-            </ScrollArea>
-          </div>
-        </ResizablePanel>
-        
-        <ResizableHandle withHandle />
-        
-        {/* Chat Panel - Right 70% */}
-        <ResizablePanel defaultSize={70}>
-          <div className="flex flex-col h-full">
+      {/* Mobile: Full-screen chat OR Desktop: Resizable panels */}
+      {isMobile ? (
+        <>
+          {/* Mobile Chat Interface */}
+          <div className="flex flex-col flex-1">
             {/* Chat Messages */}
-            <ScrollArea className="flex-1 p-6">
-              <div className="max-w-4xl mx-auto space-y-6">
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-4">
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -233,7 +258,7 @@ const ChatInterface = () => {
                       )}
                     </div>
                     <div
-                      className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-2xl ${
+                      className={`max-w-[75%] px-4 py-3 rounded-2xl ${
                         message.isUser
                           ? "bg-chat-user-bubble text-chat-user-text rounded-br-md"
                           : "bg-chat-bot-bubble text-chat-bot-text border border-border rounded-bl-md"
@@ -252,31 +277,132 @@ const ChatInterface = () => {
               </div>
             </ScrollArea>
 
-            {/* Chat Input */}
-            <div className="border-t border-border bg-background/50 p-6">
-              <div className="max-w-4xl mx-auto">
-                <div className="flex space-x-3">
-                  <Input
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Escribe tu mensaje aquí..."
-                    className="flex-1 min-h-[2.5rem] resize-none bg-background border-border"
-                  />
-                  <Button 
-                    onClick={handleSendMessage}
-                    size="sm"
-                    className="px-4 h-10"
-                    disabled={!inputText.trim() || isLoading}
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
+            {/* Mobile Chat Input */}
+            <div className="border-t border-border bg-background/50 p-4">
+              <div className="flex space-x-2">
+                <Input
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Escribe tu mensaje..."
+                  className="flex-1 min-h-[2.5rem] bg-background border-border"
+                />
+                <Button 
+                  onClick={handleSendMessage}
+                  size="sm"
+                  className="px-3 h-10"
+                  disabled={!inputText.trim() || isLoading}
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+
+          {/* Mobile Proposal Overlay */}
+          {showProposal && <ProposalOverlay />}
+        </>
+      ) : (
+        /* Desktop: Resizable Panels Layout */
+        <ResizablePanelGroup direction="horizontal" className="flex-1">
+          {/* Template Panel - Left 30% */}
+          <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
+            <div className="h-full bg-background border-r border-border">
+              <div className="p-4 border-b border-border">
+                <h3 className="font-semibold text-foreground">Propuesta Actual</h3>
+              </div>
+              <ScrollArea className="h-[calc(100%-4rem)] p-4">
+                {templateContent ? (
+                  <div className="text-sm text-foreground whitespace-pre-line">
+                    {templateContent}
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground italic">
+                    La propuesta aparecerá aquí conforme vayas completando la información...
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
+          
+          {/* Chat Panel - Right 70% */}
+          <ResizablePanel defaultSize={70}>
+            <div className="flex flex-col h-full">
+              {/* Chat Messages */}
+              <ScrollArea className="flex-1 p-6">
+                <div className="max-w-4xl mx-auto space-y-6">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex items-start space-x-3 animate-fade-in ${
+                        message.isUser ? "flex-row-reverse space-x-reverse" : ""
+                      }`}
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          message.isUser
+                            ? "bg-chat-user-bubble text-chat-user-text"
+                            : "bg-chat-bot-bubble text-chat-bot-text border border-border"
+                        }`}
+                      >
+                        {message.isUser ? (
+                          <User className="w-4 h-4" />
+                        ) : (
+                          <img 
+                            src="/lovable-uploads/abf804f8-0f27-4e98-b543-78b43f364eda.png" 
+                            alt="Crystal Bot" 
+                            className="w-5 h-5 rounded-full"
+                          />
+                        )}
+                      </div>
+                      <div
+                        className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-2xl ${
+                          message.isUser
+                            ? "bg-chat-user-bubble text-chat-user-text rounded-br-md"
+                            : "bg-chat-bot-bubble text-chat-bot-text border border-border rounded-bl-md"
+                        }`}
+                      >
+                        <p className="text-sm leading-relaxed whitespace-pre-line">{message.text}</p>
+                        <span className="text-xs opacity-70 mt-2 block">
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              {/* Desktop Chat Input */}
+              <div className="border-t border-border bg-background/50 p-6">
+                <div className="max-w-4xl mx-auto">
+                  <div className="flex space-x-3">
+                    <Input
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Escribe tu mensaje aquí..."
+                      className="flex-1 min-h-[2.5rem] resize-none bg-background border-border"
+                    />
+                    <Button 
+                      onClick={handleSendMessage}
+                      size="sm"
+                      className="px-4 h-10"
+                      disabled={!inputText.trim() || isLoading}
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      )}
     </div>
   );
 };

@@ -44,25 +44,25 @@ const ConversationCard = ({ conversation, onAccept, onReject, onRate, onCheckSim
 
   return (
     <Card className="hover:shadow-md transition-shadow duration-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+      <CardHeader className="pb-3 p-4 sm:p-6">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
+            <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center flex-shrink-0">
               <User className="w-4 h-4 text-secondary-foreground" />
             </div>
-            <div>
-              <p className="font-medium text-sm text-foreground">ID: {conversation.id}</p>
-              <p className="text-xs text-muted-foreground">Usuario: {conversation.userId}</p>
+            <div className="min-w-0">
+              <p className="font-medium text-sm text-foreground truncate">ID: {conversation.id}</p>
+              <p className="text-xs text-muted-foreground truncate">Usuario: {conversation.userId}</p>
             </div>
           </div>
-          <Badge variant={getStatusColor(conversation.status)} className="flex items-center space-x-1">
+          <Badge variant={getStatusColor(conversation.status)} className="flex items-center space-x-1 flex-shrink-0">
             {getStatusIcon(conversation.status)}
-            <span className="capitalize">{conversation.status}</span>
+            <span className="capitalize text-xs sm:text-sm">{conversation.status}</span>
           </Badge>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
         {/* Resumen de la conversación */}
         <div>
           <h4 className="text-sm font-medium text-foreground mb-2">Resumen:</h4>
@@ -74,20 +74,20 @@ const ConversationCard = ({ conversation, onAccept, onReject, onRate, onCheckSim
         {/* Último mensaje */}
         <div>
           <h4 className="text-sm font-medium text-foreground mb-2">Último mensaje:</h4>
-          <p className="text-sm text-muted-foreground italic truncate">
+          <p className="text-sm text-muted-foreground italic break-words">
             "{conversation.lastMessage}"
           </p>
         </div>
 
         {/* Metadata */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground pt-2 border-t border-border">
           <span>{conversation.messageCount} mensajes</span>
           <span>{conversation.timestamp}</span>
         </div>
 
         {/* Acciones de trazabilidad */}
         {conversation.status === 'pendiente' && (
-          <div className="flex space-x-2 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
             <Button
               size="sm"
               onClick={() => onAccept(conversation.id)}
@@ -112,42 +112,45 @@ const ConversationCard = ({ conversation, onAccept, onReject, onRate, onCheckSim
         {conversation.status !== 'pendiente' && (
           <div className="space-y-3 pt-2 border-t border-border">
             {/* Rating System */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Calificación:</span>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => onRate(conversation.id, star)}
-                    className="transition-colors hover:scale-110"
-                  >
-                    <Star 
-                      className={`h-4 w-4 ${
-                        (conversation.rating || 0) >= star 
-                          ? 'fill-yellow-400 text-yellow-400' 
-                          : 'text-gray-300 hover:text-yellow-300'
-                      }`} 
-                    />
-                  </button>
-                ))}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="text-sm font-medium flex-shrink-0">Calificación:</span>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => onRate(conversation.id, star)}
+                      className="transition-colors hover:scale-110"
+                    >
+                      <Star 
+                        className={`h-4 w-4 ${
+                          (conversation.rating || 0) >= star 
+                            ? 'fill-yellow-400 text-yellow-400' 
+                            : 'text-gray-300 hover:text-yellow-300'
+                        }`} 
+                      />
+                    </button>
+                  ))}
+                </div>
+                {conversation.rating && (
+                  <span className="text-sm text-muted-foreground">
+                    ({conversation.rating}/5)
+                  </span>
+                )}
               </div>
-              {conversation.rating && (
-                <span className="text-sm text-muted-foreground">
-                  ({conversation.rating}/5)
-                </span>
-              )}
             </div>
 
             {/* Similarity Check */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => onCheckSimilarity(conversation.id)}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 w-full sm:w-auto"
               >
                 <Copy className="h-4 w-4" />
-                Verificar Similitud
+                <span className="hidden sm:inline">Verificar Similitud</span>
+                <span className="sm:hidden">Similitud</span>
               </Button>
               {conversation.similarity !== undefined && (
                 <Badge variant={conversation.similarity > 0.8 ? "destructive" : "secondary"}>
