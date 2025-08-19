@@ -1,12 +1,21 @@
+import { Outlet } from "react-router-dom";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import Header from "@/components/Header";
-import Dashboard from "./Dashboard";
 
 const DashboardLayout = () => {
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <Header />
-      <Dashboard />
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        <div className="flex-1">
+          <Header />
+          <main className="pt-16">
+            <Outlet />
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 };
 
