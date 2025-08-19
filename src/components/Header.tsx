@@ -29,7 +29,7 @@ const Header = ({ onShowProposal, onReset }: HeaderProps) => {
             <span className="font-semibold text-lg text-foreground">CRYS</span>
           </Link>
           
-          {/* Action buttons on home page */}
+          {/* Action buttons on home page - for desktop and mobile */}
           {location.pathname === "/" && (
             <div className="flex items-center space-x-2">
               <Button
@@ -56,39 +56,56 @@ const Header = ({ onShowProposal, onReset }: HeaderProps) => {
         </div>
 
         <nav className="flex items-center space-x-1">
-          <Button
-            variant={location.pathname === "/" ? "secondary" : "ghost"}
-            size="sm"
-            asChild
-          >
-            <Link to="/" className="flex items-center space-x-2">
-              <MessageCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Chat</span>
-            </Link>
-          </Button>
+          {/* Mobile: Only show navigation icons, hide Chat and Dashboard buttons */}
+          <div className="sm:hidden">
+            {location.pathname === "/dashboard" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="flex items-center space-x-2"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
           
-          <Button
-            variant={location.pathname === "/dashboard" ? "secondary" : "ghost"}
-            size="sm"
-            asChild
-          >
-            <Link to="/dashboard" className="flex items-center space-x-2">
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Dashboard</span>
-            </Link>
-          </Button>
-
-          {location.pathname === "/dashboard" && (
+          {/* Desktop: Show full navigation */}
+          <div className="hidden sm:flex sm:items-center sm:space-x-1">
             <Button
-              variant="outline"
+              variant={location.pathname === "/" ? "secondary" : "ghost"}
               size="sm"
-              onClick={handleLogout}
-              className="flex items-center space-x-2"
+              asChild
             >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Salir</span>
+              <Link to="/" className="flex items-center space-x-2">
+                <MessageCircle className="w-4 h-4" />
+                <span>Chat</span>
+              </Link>
             </Button>
-          )}
+            
+            <Button
+              variant={location.pathname === "/dashboard" ? "secondary" : "ghost"}
+              size="sm"
+              asChild
+            >
+              <Link to="/dashboard" className="flex items-center space-x-2">
+                <BarChart3 className="w-4 h-4" />
+                <span>Dashboard</span>
+              </Link>
+            </Button>
+
+            {location.pathname === "/dashboard" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="flex items-center space-x-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Salir</span>
+              </Button>
+            )}
+          </div>
         </nav>
       </div>
     </header>
